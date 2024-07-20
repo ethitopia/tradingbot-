@@ -15,27 +15,39 @@ ALPACA_CREDS = {
 }
 
 class Trader(Strategy):
-    def initialize(self, s: str = "SPY"): 
-        self.spy = s
+    def initialize(self, s: str = "SPY", cash_at_risk:float = .5): 
+        self.symbol = s
         self.sleeptime = "24H" #frequency of trade
         self.last_trade = None 
-       
+        self.cash_at_risk = cash_at_risk
+        
+    def position_sizing(self): 
+        cash = self.get_cash()
+        last_price = self.get_last_price(self.symbol)
+        quantity = round(cash * self.cash_at_risk / last_price)
+        return cash, last_price, quantity
+        
     def onTrade(self): 
-        if self.last_trade == None: 
-            order = self.create_order(
-                self.symbol, 
-                10, 
-                "buy", 
-                type="market"
-            )
-            self.submit_order(order)
-            self.last_trade = "buy"
-            
+        cash, last_price, quantity = self.position_sizing
+        if cash > last_price: 
+            if self.last_trade == None: 
+                order = self.create_order(
+                    self.symbol, 
+                    quantity,
+                    10, 
+                    "buy", 
+                    type="bracket", 
+                    take_profit_price = last_price*1.3, 
+                    stop_loss_price=last_price*.95
+                )
+                self.submit_order(order)
+                self.last_trade = "buy"
        
    
 broker = Alpaca(ALPACA_CREDS)
 
-strategy = Trader(name='Trader1', broker=broker, parameters={})
+strategy = Trader(name='Trader1', broker=broker, parameters={"symbol": "SPY", 
+                                                             "cash_at_risk": .5})
 
 start_date = datetime(2024, 6, 20)
 
@@ -45,6 +57,4 @@ strategy.backtest(
     YahooDataBacktesting, 
     start_date, 
     end_date, 
-    parameters()
-    
-) 
+    parameters = {"symbol": "SPY", "cash_at_risk": .5}) 
