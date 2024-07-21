@@ -2,9 +2,9 @@ from lumibot.brokers import Alpaca
 from lumibot.backtesting import YahooDataBacktesting 
 from lumibot.strategies.strategy import Strategy 
 from lumibot.traders import Trader 
-from datetime import datetime 
+from datetime import datetime, timedelta
+from utils.sentiment_util import estimate_sentiment
 from alpaca_trade_api import REST 
-from timedelta import Timedelta
 
 API_KEY = ""
 API_SECRET = "" 
@@ -18,11 +18,12 @@ ALPACA_CREDS = {
 
 class TraderStrat(Strategy):
     def initialize(self, s: str = "SPY", cash_at_risk:float = .5): 
+        super().initialize()
         self.symbol = s
-        self.sleeptime = "24H" #frequency of trade
+        self.sleeptime = timedelta(hours=24) #frequency of trade
         self.last_trade = None 
         self.cash_at_risk = cash_at_risk
-        self.api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
+        self.api = REST(API_KEY, API_SECRET, BASE_URL)
         
     def position_sizing(self): 
         cash = self.get_cash()
@@ -32,10 +33,10 @@ class TraderStrat(Strategy):
        
     def get_dates(self): 
         today = self.api.get_datetime()
-        five_days_prior = today - Timedelta(days=5)
+        five_days_prior = today - timedelta(days=5)
         return today.strftime('%Y-%m-%d'), five_days_prior.strftime('%Y-%m-%d')
        
-    def get_news_sentiment(self): 
+    def get_news(self): 
         today, start = self.get_dates()
         news = self.api.get_news(symbol=self.symbol, start=start, end=today)
         news = [ev.__dict__["_raw"]["headline"] for ev in news]
@@ -43,9 +44,11 @@ class TraderStrat(Strategy):
         
     def onTrade(self): 
         cash, last_price, quantity = self.position_sizing
-        news = self.get_news()
+        news_list = self.get_news()
+        sentiments = [estimate_sentiment(news) for news in news_list]
+        sentiment_score = sentiments.count('positive') - sentiments.count('negative')
         
-        if cash > last_price: 
+        if cash > last_price and sentiment_score > 0: #strategy integrates sentiment positivity
             if self.last_trade == None: 
                 order = self.create_order(
                     self.symbol, 
