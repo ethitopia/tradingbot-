@@ -16,7 +16,7 @@ ALPACA_CREDS = {
                 "PAPER": True
 }
 
-class Trader(Strategy):
+class TraderStrat(Strategy):
     def initialize(self, s: str = "SPY", cash_at_risk:float = .5): 
         self.symbol = s
         self.sleeptime = "24H" #frequency of trade
@@ -33,9 +33,9 @@ class Trader(Strategy):
     def get_dates(self): 
         today = self.api.get_datetime()
         five_days_prior = today - Timedelta(days=5)
-        return today.datetime.strftime('%Y-%m-%d'), five_days_prior.datetime.strftime('%Y-%m-%d')
+        return today.strftime('%Y-%m-%d'), five_days_prior.strftime('%Y-%m-%d')
        
-    def get_news(self): 
+    def get_news_sentiment(self): 
         today, start = self.get_dates()
         news = self.api.get_news(symbol=self.symbol, start=start, end=today)
         news = [ev.__dict__["_raw"]["headline"] for ev in news]
@@ -44,6 +44,7 @@ class Trader(Strategy):
     def onTrade(self): 
         cash, last_price, quantity = self.position_sizing
         news = self.get_news()
+        
         if cash > last_price: 
             if self.last_trade == None: 
                 order = self.create_order(
@@ -61,7 +62,7 @@ class Trader(Strategy):
    
 broker = Alpaca(ALPACA_CREDS)
 
-strategy = Trader(name='Trader1', broker=broker, parameters={"symbol": "SPY", 
+strategy = TraderStrat(name='Trader1', broker=broker, parameters={"symbol": "SPY", 
                                                              "cash_at_risk": .5})
 
 start_date = datetime(2024, 6, 20)
