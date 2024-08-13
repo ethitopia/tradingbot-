@@ -4,4 +4,4 @@ Vanilla Implementation of a Algorithmic Trading Bot leveraging pretrained sentim
 
 ### Frameworks: 
 
-Pytorch, Lumibot 
+Pytorch, Lumibot, AlpacaTrade API, Transformers
