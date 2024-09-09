@@ -56,7 +56,7 @@ class TraderStrat(Strategy):
                     10, 
                     "buy", 
                     type="bracket", 
-                    take_profit_price = last_price*1.3, 
+                    take_profit_price = last_price*1.1, 
                     stop_loss_price=last_price*.95
                 )
                 self.submit_order(order)
