@@ -9,6 +9,10 @@ Sentiment Calculation: Analyzes the sentiment of news headlines from the last fi
 Trading Logic: If the sentiment score is positive and there are no open trades, the strategy submits a buy order using a bracket order format to manage the trade actively.
 Position Sizing: Determines the quantity of shares to buy based on the available cash and a predefined risk parameter (cash at risk).
 
+### Installation: 
+
+pip install transformers alpaca-trade-api lumibot pytorch
+
 ### Frameworks: 
 
 Pytorch, Lumibot, AlpacaTrade API, Transformers
