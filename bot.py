@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from utils.sentiment_util import estimate_sentiment
 from alpaca_trade_api import REST 
 
+
 API_KEY = ""
 API_SECRET = "" 
 BASE_URL = "" 
@@ -63,16 +64,3 @@ class TraderStrat(Strategy):
                 self.last_trade = "buy"
        
    
-broker = Alpaca(ALPACA_CREDS)
-
-strategy = TraderStrat(name='Trader1', broker=broker, parameters={"symbol": "SPY", "cash_at_risk": 0.5})
-
-start_date = datetime(2024, 6, 20)
-end_date = datetime(2024, 7, 20)
-
-strategy.backtest(
-    YahooDataBacktesting, 
-    start_date, 
-    end_date, 
-    parameters={"symbol": "SPY", "cash_at_risk": 0.5}
-)
